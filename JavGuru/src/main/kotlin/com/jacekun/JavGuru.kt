@@ -123,7 +123,7 @@ class JavGuru : MainAPI() {
             type = globaltvType,
             dataUrl = streamUrl,
             posterUrl = poster,
-            tags = tags
+            tags = tags,
             year = year,
             plot = descript,
             comingSoon = true
