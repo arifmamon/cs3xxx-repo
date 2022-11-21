@@ -127,4 +127,50 @@ class JavGuru : MainAPI() {
             comingSoon = true
         )
     }
+    
+     override suspend fun loadLinks(
+        data: String,
+        isCasting: Boolean,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ): Boolean {
+
+        var document = app.get(data).document
+        if(document.select("title").text() == "Just a moment...") {
+            document = app.get(data, interceptor = interceptor).document
+        }
+        val id = document.select("meta#dooplay-ajax-counter").attr("data-postid")
+        val type = if (data.contains("/movies/")) "movie" else "tv"
+
+        document.select("ul#playeroptionsul > li").map {
+            it.attr("data-nume")
+        }.apmap { nume ->
+            safeApiCall {
+                val source = app.post(
+                    url = "$mainUrl/wp-admin/admin-ajax.php",
+                    data = mapOf(
+                        "action" to "doo_player_ajax",
+                        "post" to id,
+                        "nume" to nume,
+                        "type" to type
+                    ),
+                    referer = data,
+                    headers = mapOf("X-Requested-With" to "XMLHttpRequest")
+                ).parsed<ResponseHash>().embed_url
+
+                when {
+                    source.startsWith("https://sbflix.xyz") -> {
+                        invokeSbflix(source, callback)
+                    }
+//                    source.startsWith("https://series.databasegdriveplayer.co") -> {
+//                        invokeDatabase(source, callback, subtitleCallback)
+//                    }
+                    !source.contains("youtube") -> loadExtractor(source, data, subtitleCallback, callback)
+                    else -> {}
+                }
+            }
+        }
+
+        return true
+    }
 }
