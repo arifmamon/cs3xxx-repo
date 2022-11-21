@@ -112,6 +112,7 @@ class JavGuru : MainAPI() {
         val title = body.select("h1.titl").text()
         val descript = body.select("div.wp-content").select("p").firstOrNull()?.text()
         val streamUrl = ""
+        val tags = document.select("div.infoleft div:nth-child(4) > a").map { it.text() }
         val year = body.select("div.infometa > div.infoleft > ul > li")
             ?.get(1)?.text()?.takeLast(10)?.substring(0, 4)?.toIntOrNull()
 
@@ -122,6 +123,7 @@ class JavGuru : MainAPI() {
             type = globaltvType,
             dataUrl = streamUrl,
             posterUrl = poster,
+            tags = tags
             year = year,
             plot = descript,
             comingSoon = true
